@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>使用XHR封装ajax请求函数</title>
+</head>
+<body>
+  <button onclick="testGet()">发送GET请求</button><br>
+  <button onclick="testPost()">发送POST请求</button><br>
+  <button onclick="testPut()">发送PUT请求</button><br>
+  <button onclick="testDelete()">发送Delete请求</button><br>
+  <script>
+    // 测试XHR基本使用
+    function testXHR() {
+      const xhr=new XMLHttpRequest()
+      xhr.open('GET','http://localhost:3000/posts',true)
+      xhr.onreadystatechange=function(){
+        if(xhr.readyState!==4){
+          return
+        }
+        const response=xhr.response
+        console.log(JSON.parse(response))
+      }
+      xhr.send()
+    }
+    testXHR()
+  </script>
+
+  <script>
+    function axios({
+      url,
+      method='GET',
+      params={},
+      data={}
+    }) {
+      return new Promise((resolve,reject)=>{
+        let queryStr=''
+        Object.keys(params).forEach(key=>{
+          queryStr+=`&${key}=${params[key]}`
+        })
+        if(queryStr!==''){
+          queryStr=queryStr.substring(1)
+          url+='?'+queryStr
+        }
+        // 发送异步ajax请求
+        const xhr=new XMLHttpRequest()
+        method=method.toUpperCase()
+        xhr.open(method,url,true)
+        xhr.onreadystatechange=function(){
+          if(xhr.readyState!==4) return
+          const status=xhr.status
+          if(status>=200&&status<300){
+            const data=xhr.response
+            const response={
+              data:JSON.parse(data),
+              status
+            }
+            resolve(response)
+          }else{
+            reject(new Error('request error ,status is '+status))
+          }
+        }
+
+        // 根据请求方式来决定要不要传请求体参数
+        if(method==='GET'){
+          xhr.send()
+        }else{
+          xhr.setRequestHeader('Content-Type','application/json;charset=utf-8')
+          xhr.send(JSON.stringify(data))
+        }
+
+      })
+    }
+  </script>
+   <script>
+    function testGet() {
+      axios({
+        url: 'http://localhost:3000/posts',
+        method: 'get',
+        params: { // 指定所有query参数的对象(不是指定的params参数的)
+          id: 1,
+          // title: 'xxx'
+        }
+      }).then(response => {
+        console.log(response.data)
+      }).catch(error => {
+        console.log('请求出错 ', error.message)
+      })
+    }
+    function testPost() {
+      axios({
+        url: 'http://localhost:3000/posts',
+        method: 'POST',
+        data: { // 指定所有请求参数的对象
+          title: 'title111',
+          author: 'author111'
+        }
+      }).then(response => {
+        console.log(response.data)
+      }).catch(error => {
+        console.log('请求出错 ', error.message)
+      })
+    }
+    function testPut() {
+      axios({
+        url: 'http://localhost:3000/posts/5',
+        method: 'PUT',
+        data: { // 指定所有请求参数的对象
+          title: 'title333',
+          author: 'author333'
+        }
+      }).then(response => {
+        console.log(response.data)
+      }).catch(error => {
+        console.log('请求出错 ', error.message)
+      })
+    }
+    function testDelete() {
+      axios({
+        url: 'http://localhost:3000/posts/5',
+        method: 'delete',
+        data: {
+          id: 1,
+          title: 2
+        }
+      }).then(response => {
+        console.log(response.data)
+      }).catch(error => {
+        console.log('请求出错 ', error.message)
+      })
+    }
+
+  </script>
+
+</body>
+</html>
